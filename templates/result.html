@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuizCraft AI - Quiz Result</title>
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/static/images/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/static/images/favicon-16x16.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/static/images/apple-touch-icon.png"
+    />
+    <link rel="manifest" href="/static/site.webmanifest" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+      }
+      .container-wrapper {
+        width: 100%;
+        max-width: 800px;
+        min-height: 100vh;
+        background-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        border-radius: 0;
+      }
+      .header {
+        background: linear-gradient(90deg, #6027ce 0%, #8a4fff 100%);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        font-weight: bold;
+        font-size: 2.2rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .content {
+        flex: 1;
+        padding: 2rem;
+        width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+      }
+      .result-card {
+        background-color: #ffffff;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .result-item:last-child {
+        border-bottom: none;
+      }
+      .result-label {
+        font-weight: 600;
+        color: #4a5568;
+      }
+      .result-value {
+        font-weight: 700;
+        color: #6027ce;
+      }
+      .button {
+        background: linear-gradient(90deg, #6027ce 0%, #8a4fff 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 15px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 0 #4a1e9e, 0 15px 20px rgba(0, 0, 0, 0.35);
+        position: relative;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: block;
+        width: 100%;
+        margin-top: 1rem;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        box-sizing: border-box;
+      }
+      .button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 11px 0 #4a1e9e, 0 18px 23px rgba(0, 0, 0, 0.35);
+      }
+      .button:active {
+        transform: translateY(5px);
+        box-shadow: 0 3px 0 #4a1e9e, 0 5px 10px rgba(0, 0, 0, 0.35);
+      }
+      .review-button {
+        background: white;
+        color: #6027ce;
+        box-shadow: 0 8px 0 #d1d5db, 0 15px 20px rgba(0, 0, 0, 0.1);
+      }
+      .review-button:hover {
+        box-shadow: 0 11px 0 #d1d5db, 0 18px 23px rgba(0, 0, 0, 0.1);
+      }
+      .review-button:active {
+        box-shadow: 0 3px 0 #d1d5db, 0 5px 10px rgba(0, 0, 0, 0.35);
+      }
+      .copyright {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #4a5568;
+        margin-top: 1rem;
+        position: absolute;
+        bottom: 1rem;
+        left: 0;
+        right: 0;
+      }
+      .craftee-container {
+        position: fixed;
+        left: 20px;
+        bottom: -100px;
+        transition: bottom 0.5s ease-out;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .craftee {
+        width: 100px;
+        height: 100px;
+        background: url("/static/images/charec.jpeg") no-repeat center center;
+        background-size: cover;
+        border-radius: 50%;
+        overflow: hidden;
+      }
+      .speech-bubble {
+        position: relative;
+        background: #ffffff;
+        border-radius: 15px;
+        padding: 12px;
+        max-width: 220px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+        opacity: 0;
+        transition: opacity 0.5s ease-out;
+        font-size: 15px;
+        line-height: 1.3;
+        color: #333;
+        margin-left: 30px;
+      }
+      .speech-bubble:after {
+        content: "";
+        position: absolute;
+        left: 20px;
+        bottom: -10px;
+        width: 0;
+        height: 0;
+        border: 10px solid transparent;
+        border-top-color: #ffffff;
+        border-bottom: 0;
+        margin-left: -10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-wrapper">
+      <div class="header">QuizCraft AI</div>
+      <div class="content">
+        <div class="result-card">
+          <div class="result-item">
+            <span class="result-label">Total Questions:</span>
+            <span class="result-value">{{ total_questions }}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Correct Answers:</span>
+            <span class="result-value">{{ correct_answers }}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Wrong Answers:</span>
+            <span class="result-value">{{ wrong_answers }}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Score:</span>
+            <span class="result-value">{{ score|round(2) }}%</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Grade:</span>
+            <span class="result-value">
+              {{ grade }} {% if grade == 'A' %} 😄 {% elif grade == 'B' %} 🙂 {%
+              elif grade == 'C' %} 😐 {% elif grade == 'D' %} 😕 {% else %} 😢
+              {% endif %}
+            </span>
+          </div>
+        </div>
+        <a href="/" class="button">Take Another Quiz</a>
+        <a href="{{ url_for('review') }}" class="button review-button"
+          >Review Answers</a
+        >
+        <div class="copyright">
+          QuizCraft AI. Developed By Rana Kabeer.
+        </div>
+      </div>
+    </div>
+    <div class="craftee-container">
+      <div class="speech-bubble"></div>
+      <div class="craftee"></div>
+    </div>
+    <script>
+      window.onload = function () {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+
+        // Get the grade and set the appropriate message
+        const grade = "{{ grade }}";
+        let message = "";
+        switch (grade) {
+          case "A":
+            message = "Fantastic work! You're a star! 🌟";
+            break;
+          case "B":
+            message = "Great job! Keep it up! 👍";
+            break;
+          case "C":
+            message = "Good effort! You can do even better! 💪";
+            break;
+          case "D":
+            message = "Nice try! Let's aim higher next time! 🎯";
+            break;
+          default:
+            message = "Don't give up! Every attempt is a step forward. 🚀";
+        }
+
+        // Animate Craftee
+        setTimeout(function () {
+          document.querySelector(".craftee-container").style.bottom = "60px";
+          setTimeout(function () {
+            document.querySelector(".speech-bubble").textContent = message;
+            document.querySelector(".speech-bubble").style.opacity = "1";
+          }, 500);
+
+          // Make Craftee disappear after 5 seconds
+          setTimeout(function () {
+            document.querySelector(".speech-bubble").style.opacity = "0";
+            setTimeout(function () {
+              document.querySelector(".craftee-container").style.bottom =
+                "-100px";
+            }, 500);
+          }, 5000);
+        }, 1000);
+      };
+    </script>
+  </body>
+</html>

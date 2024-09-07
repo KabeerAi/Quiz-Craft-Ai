@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuizCraft AI - Intelligent MCQ Generator</title>
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/static/images/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/static/images/favicon-16x16.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/static/images/apple-touch-icon.png"
+    />
+    <link rel="manifest" href="/static/site.webmanifest" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+      }
+      .app-container {
+        width: 100%;
+        min-height: 100vh;
+        background-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+      }
+      .app-container.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .header {
+        background: linear-gradient(90deg, #6027ce 0%, #8a4fff 100%);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        font-weight: bold;
+        font-size: 2.2rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .content {
+        flex: 1;
+        padding: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+      }
+      .file-upload {
+        border: 3px dashed #6027ce;
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: rgba(255, 255, 255, 0.8);
+      }
+      .file-upload:hover {
+        background-color: rgba(240, 240, 253, 0.9);
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      .button {
+        background: linear-gradient(90deg, #6027ce 0%, #8a4fff 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 15px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 0 #4a1e9e, 0 15px 20px rgba(0, 0, 0, 0.35);
+        position: relative;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 11px 0 #4a1e9e, 0 18px 23px rgba(0, 0, 0, 0.35);
+      }
+      .button:active {
+        transform: translateY(5px);
+        box-shadow: 0 3px 0 #4a1e9e, 0 5px 10px rgba(0, 0, 0, 0.35);
+      }
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .loader {
+        width: 120px;
+        height: 120px;
+        background: url("/static/images/charec.jpeg") no-repeat center center;
+        background-size: cover;
+        border-radius: 50%;
+        animation: bounce 1s infinite alternate;
+      }
+      @keyframes bounce {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(-20px);
+        }
+      }
+      .loader-text {
+        margin-top: 20px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #6027ce;
+      }
+      .input-field {
+        border: 3px solid #e2e8f0;
+        border-radius: 15px;
+        padding: 1rem;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        background-color: rgba(255, 255, 255, 0.8);
+      }
+      .input-field:focus {
+        border-color: #6027ce;
+        box-shadow: 0 0 0 3px rgba(96, 39, 206, 0.2);
+        outline: none;
+      }
+      .label {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+      }
+      .copyright {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #718096;
+        padding: 1rem 0;
+      }
+      .craftee-container {
+        position: fixed;
+        left: 20px;
+        bottom: -100px; /* Moved up by 40px */
+        transition: bottom 0.5s ease-out;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .craftee {
+        width: 100px;
+        height: 100px;
+        background: url("/static/images/charec.jpeg") no-repeat center center;
+        background-size: cover;
+        border-radius: 50%;
+        overflow: hidden;
+      }
+      .speech-bubble {
+        position: relative;
+        background: #ffffff;
+        border-radius: 15px;
+        padding: 12px;
+        max-width: 220px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+        opacity: 0;
+        transition: opacity 0.5s ease-out;
+        font-size: 15px;
+        line-height: 1.3;
+        color: #333;
+        margin-left: 30px;
+      }
+      .speech-bubble:after {
+        content: "";
+        position: absolute;
+        left: 20px;
+        bottom: -10px;
+        width: 0;
+        height: 0;
+        border: 10px solid transparent;
+        border-top-color: #ffffff;
+        border-bottom: 0;
+        margin-left: -10px;
+      }
+
+      /* Add these new styles for the initial loading animation */
+      #initial-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+      }
+
+      .initial-loader {
+        width: 150px;
+        height: 150px;
+        background: url("/static/images/charec.jpeg") no-repeat center center;
+        background-size: cover;
+        border-radius: 50%;
+        margin-bottom: 20px;
+      }
+
+      .loading-text {
+        font-family: "Poppins", sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #6027ce;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .loading-bar {
+        width: 200px;
+        height: 6px;
+        background-color: #e0e0e0;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      .loading-bar-fill {
+        width: 0%;
+        height: 100%;
+        background-color: #6027ce;
+        transition: width 2s ease-in-out;
+      }
+
+      /* New styles for macOS-like contact popup */
+      #contact-popup {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .contact-content {
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 24px;
+        max-width: 400px;
+        width: 100%;
+      }
+
+      .contact-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .contact-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin-right: 16px;
+        object-fit: cover;
+      }
+
+      .contact-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .contact-info {
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+
+      .contact-info p {
+        margin: 8px 0;
+        color: #555;
+      }
+
+      #close-popup {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(90deg, #6027ce 0%, #8a4fff 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 0 #4a1e9e, 0 15px 20px rgba(0, 0, 0, 0.35);
+        position: relative;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      #close-popup:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 11px 0 #4a1e9e, 0 18px 23px rgba(0, 0, 0, 0.35);
+      }
+
+      #close-popup:active {
+        transform: translateY(5px);
+        box-shadow: 0 3px 0 #4a1e9e, 0 5px 10px rgba(0, 0, 0, 0.35);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Add this new div for the initial loading animation -->
+    <div id="initial-loading">
+      <div class="initial-loader"></div>
+      <div class="loading-text">QuizCraft AI</div>
+      <div class="loading-bar">
+        <div class="loading-bar-fill"></div>
+      </div>
+    </div>
+
+    <div class="app-container">
+      <div class="header">QuizCraft AI</div>
+      <div class="content">
+        <form
+          id="mcq-form"
+          action="/"
+          method="post"
+          enctype="multipart/form-data"
+        >
+          <div class="mb-8">
+            <label for="file" class="label block mb-3"
+              >Upload your image:</label
+            >
+            <div class="file-upload">
+              <input
+                type="file"
+                name="file"
+                id="file"
+                accept="image/*"
+                required
+                class="hidden"
+              />
+              <p class="text-gray-600 text-lg font-semibold">
+                Drag and drop or click to select an image
+              </p>
+              <svg
+                class="mx-auto mt-4"
+                width="60"
+                height="60"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                  stroke="#6027ce"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M7 10L12 15L17 10"
+                  stroke="#6027ce"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M12 15V3"
+                  stroke="#6027ce"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <p
+              id="file-name"
+              class="mt-3 text-sm text-gray-600 font-semibold"
+            ></p>
+          </div>
+          <div class="mb-8">
+            <label for="num_mcqs" class="label block mb-3"
+              >Number of MCQs to generate:</label
+            >
+            <input
+              type="number"
+              name="num_mcqs"
+              id="num_mcqs"
+              min="1"
+              max="15"
+              required
+              class="input-field w-full"
+              placeholder="Enter a number between 1 and 15"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full button text-xl uppercase tracking-wide"
+          >
+            Generate MCQs
+          </button>
+        </form>
+      </div>
+      <div id="loading-overlay" class="loading-overlay" style="display: none">
+        <div class="loader"></div>
+        <p class="loader-text">Generating your quiz...</p>
+      </div>
+      <div class="copyright">
+        QuizCraft AI. Developed By <a href="#" id="developer-link" class="text-purple-600 hover:text-purple-800">Rana Kabeer</a>.
+      </div>
+    </div>
+    <div class="craftee-container">
+      <div class="speech-bubble">
+        Asslam u Alaikum! I'm Craftee. Upload an image and I'll craft a fun quiz
+        for you. Let's learn together!
+      </div>
+      <div class="craftee"></div>
+    </div>
+    <div id="contact-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+      <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <h2 class="text-2xl font-bold mb-4">Contact Information</h2>
+        <p class="mb-2"><strong>Developed by:</strong> Rana Kabeer</p>
+        <p class="mb-4 flex items-center justify-between">
+          <span><strong>Email:</strong> ranakabeer.ai@gmail.com</span>
+          <a href="mailto:ranakabeer.ai@gmail.com" class="inline-block ml-2 bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition-colors">
+            <svg class="w-6 h-6 text-purple-600 hover:text-purple-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </a>
+        </p>
+        <div class="flex justify-center items-center">
+          <button id="close-popup" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">Close</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      document.getElementById("file").addEventListener("change", function (e) {
+        var fileName = e.target.files[0].name;
+        var fileExtension = fileName.split(".").pop().toLowerCase();
+        var allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+
+        if (allowedExtensions.includes(fileExtension)) {
+          document.getElementById("file-name").textContent =
+            "✅ Selected: " + fileName;
+        } else {
+          document.getElementById("file-name").textContent =
+            "❌ Please select a valid image file (jpg, jpeg, png, or gif).";
+          e.target.value = "";
+        }
+      });
+
+      document
+        .querySelector(".file-upload")
+        .addEventListener("click", function () {
+          document.getElementById("file").click();
+        });
+
+      document
+        .getElementById("mcq-form")
+        .addEventListener("submit", function (e) {
+          document.getElementById("loading-overlay").style.display = "flex";
+          document.querySelector(".craftee-container").style.display = "none";
+        });
+
+      // Add drag and drop functionality
+      const dropZone = document.querySelector(".file-upload");
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, highlight, false);
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+      });
+
+      function highlight(e) {
+        dropZone.classList.add("border-blue-500");
+      }
+
+      function unhighlight(e) {
+        dropZone.classList.remove("border-blue-500");
+      }
+
+      dropZone.addEventListener("drop", handleDrop, false);
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        document.getElementById("file").files = files;
+        document.getElementById("file").dispatchEvent(new Event("change"));
+      }
+
+      // Animate Craftee
+      window.addEventListener("load", function () {
+        const loadingBarFill = document.querySelector(".loading-bar-fill");
+        const initialLoading = document.getElementById("initial-loading");
+        const appContainer = document.querySelector(".app-container");
+
+        loadingBarFill.style.width = "100%";
+
+        setTimeout(function () {
+          initialLoading.style.opacity = "0";
+          initialLoading.style.transition = "opacity 0.5s ease-out";
+
+          setTimeout(function () {
+            initialLoading.style.display = "none";
+
+            // Trigger the content animation
+            appContainer.classList.add("show");
+
+            // Trigger the Craftee animation after the app content is shown
+            setTimeout(function () {
+              const crafteeContainer =
+                document.querySelector(".craftee-container");
+              crafteeContainer.style.bottom = "60px";
+              setTimeout(function () {
+                document.querySelector(".speech-bubble").style.opacity = "1";
+              }, 500);
+            }, 1000);
+          }, 500);
+        }, 2500); // Total loading time (2s for bar + 0.5s for fade out)
+      });
+
+      // Make Craftee disappear when user touches anywhere in the app
+      document.addEventListener("touchstart", function () {
+        const crafteeContainer = document.querySelector(".craftee-container");
+        crafteeContainer.style.transition = "opacity 0.5s ease-out";
+        crafteeContainer.style.opacity = "0";
+        setTimeout(function () {
+          crafteeContainer.style.display = "none";
+        }, 500);
+      });
+
+      // Also make Craftee disappear on mouse click for non-touch devices
+      document.addEventListener("click", function () {
+        const crafteeContainer = document.querySelector(".craftee-container");
+        crafteeContainer.style.transition = "opacity 0.5s ease-out";
+        crafteeContainer.style.opacity = "0";
+        setTimeout(function () {
+          crafteeContainer.style.display = "none";
+        }, 500);
+      });
+
+      // Add this new code at the end of the script section
+      const developerLink = document.getElementById('developer-link');
+      const contactPopup = document.getElementById('contact-popup');
+      const closePopup = document.getElementById('close-popup');
+
+      developerLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        contactPopup.classList.remove('hidden');
+      });
+
+      closePopup.addEventListener('click', function() {
+        contactPopup.classList.add('hidden');
+      });
+
+      contactPopup.addEventListener('click', function(e) {
+        if (e.target === contactPopup) {
+          contactPopup.classList.add('hidden');
+        }
+      });
+    </script>
+  </body>
+</html>
