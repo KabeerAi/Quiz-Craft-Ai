@@ -83,8 +83,8 @@ def index():
                 session['mcqs'] = mcqs
                 return redirect(url_for('quiz'))
         except Exception as e:
-            print(f"Error in index route: {str(e)}")
-            return redirect(url_for('error'))
+            error_message = f"Error in index route: {str(e)}"
+            return redirect(url_for('error', error=error_message))
     return render_template('index.html')
 
 @app.route('/quiz', methods=['GET', 'POST'])
@@ -99,8 +99,8 @@ def quiz():
             return redirect(url_for('result'))
         return render_template('quiz.html', mcqs=mcqs, enumerate=enumerate)
     except Exception as e:
-        print(f"Error in quiz route: {str(e)}")
-        return redirect(url_for('error'))
+        error_message = f"Error in quiz route: {str(e)}"
+        return redirect(url_for('error', error=error_message))
 
 @app.route('/result')
 def result():
@@ -116,8 +116,8 @@ def result():
         return render_template('result.html', total_questions=total_questions, correct_answers=correct_answers,
                                wrong_answers=wrong_answers, score=score, grade=grade)
     except Exception as e:
-        print(f"Error in result route: {str(e)}")
-        return redirect(url_for('error'))
+        error_message = f"Error in result route: {str(e)}"
+        return redirect(url_for('error', error=error_message))
 
 @app.route('/review')
 def review():
@@ -126,12 +126,13 @@ def review():
         user_answers = session.get('user_answers', {})
         return render_template('review.html', mcqs=mcqs, user_answers=user_answers, enumerate=enumerate)
     except Exception as e:
-        print(f"Error in review route: {str(e)}")
-        return redirect(url_for('error'))
+        error_message = f"Error in review route: {str(e)}"
+        return redirect(url_for('error', error=error_message))
 
 @app.route('/error')
 def error():
-    return render_template('error.html')
+    error_message = request.args.get('error', 'An unknown error occurred')
+    return render_template('error.html', error_message=error_message)
 
 def calculate_grade(score):
     if score >= 90:
