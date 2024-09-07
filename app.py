@@ -147,4 +147,4 @@ def calculate_grade(score):
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    app.run(debug=True)
+    app.run(debug=False, host='0.0.0.0')
